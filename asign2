@@ -1,0 +1,83 @@
+;Write an x86/64 ALP to accept the strng from user and display its length
+;Samir Game
+;Date of performance: 27 Jan 2025
+
+%macro io 4
+	mov rax,%1
+	mov rdi,%2
+	mov rsi,%3
+	mov rdx,%4
+	syscall
+%endmacro
+%macro exit 0
+	mov rax,60
+	mov rdi,0
+	syscall
+%endmacro
+section .data
+	msg1 db "Enter some string:",20H
+	msg1len equ $-msg1
+	msg2 db "The length is: ", 20H
+	msg2len equ $-msg2
+    msg3 db "step1: ", 10
+	msg3len equ $-msg3
+    msg4 db "step2: ", 10
+	msg4len equ $-msg4
+    newline db 10
+
+section .bss
+	strna resb 20
+	len1 resb 1
+	len2 resb 1
+    lenca resb 2
+
+section .code
+	global _start
+	_start:
+		io 1,1,msg1,msg1len
+        io 0,0,strna,20
+
+		dec rax
+		mov [len1],rax
+
+        io 1,1,msg3,msg3len
+        io 1,1,msg2,msg2len
+        mov bl,[len1]
+        call hex_ascii64
+
+        io 1,1,msg4,msg4len
+        mov rcx,[len1]
+        next1:
+            mov rsi,strna
+            mov al,[rsi]
+            cmp al,10
+            jne inby
+
+            inby:
+                inc byte[len2]
+                loop next1
+        io 1,1,msg2,msg2len
+        mov bl,[len2]
+        call hex_ascii64
+		exit
+
+    hex_ascii64:
+        mov rsi,lenca
+        mov rcx,2
+        
+        next2: 	
+            rol bl,4
+            mov al,bl
+            and al,0fh
+            cmp al,9
+            jbe add30h
+            add al,7H
+            
+            add30h: 
+                add al,30H
+                mov [rsi],al
+                inc rsi
+        loop next2
+            io 1,1,lenca,2
+            io 1,1,newline,1
+        ret
